@@ -87,10 +87,12 @@ export class Codec implements ICodec {
 
       if (estimatedSize < minSize) {
         minSize = estimatedSize;
+        // @ts-ignore
         best = { codec, id, encoded: null };
       }
     }
 
+    // @ts-ignore
     if (!best) {
       throw 'no codec found';
     }

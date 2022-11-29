@@ -6,7 +6,9 @@ import { BitStreamReader, BitStreamWriter, bitWidth, randomUintN } from './bitst
 test('BitStreamReader packs bits', _ => {
   const bytes = '0b10111011 0b11001010 0b10101010 0b10111111'.split(' ').map(Number);
   const reader = new BitStreamReader(new Uint8Array(bytes));
+  // @ts-ignore
   assert.throws(_ => reader.read(0));
+  // @ts-ignore
   assert.throws(_ => reader.read(257));
   assert.is(reader.read(3), 5n);
   assert.is(reader.read(5), 27n);
@@ -16,17 +18,24 @@ test('BitStreamReader packs bits', _ => {
   assert.is(reader.read(3), 5n);
   assert.is(reader.read(3), 2n);
   assert.is(reader.read(6), 63n);
+  // @ts-ignore
   assert.throws(_ => reader.read(1));
 });
 
 test('BitStreamWriter writes bits', _ => {
   const writer = new BitStreamWriter();
 
+  // @ts-ignore
   assert.throws(_ => writer.write(0, 0n));
+  // @ts-ignore
   assert.throws(_ => writer.write(-1, 0n));
+  // @ts-ignore
   assert.throws(_ => writer.write(0.1, 0n));
+  // @ts-ignore
   assert.throws(_ => writer.write(8, -1n));
+  // @ts-ignore
   assert.throws(_ => writer.write(257, 1n));
+  // @ts-ignore
   assert.throws(_ => writer.write(2, 4n));
 
   writer.write(3, BigInt('0b101'));
@@ -50,9 +59,11 @@ test("BitStreamReader throws if reading past end", _ => {
   const reader = new BitStreamReader(new Uint8Array(bytes));
   assert.is(reader.read(9), 375n);
   assert.is(reader.read(7), 74n);
+  // @ts-ignore
   assert.throws(_ => reader.read(1));
 
   const reader2 = new BitStreamReader(new Uint8Array(bytes));
+  // @ts-ignore
   assert.throws(_ => reader2.read(17));
 });
 
@@ -66,6 +77,7 @@ test('Round-trip random fuzzing', _ => {
     const x = randomUintN(n);
 
     bits.write(n, x);
+  // @ts-ignore
     numbers.push({n, x});
   }
 

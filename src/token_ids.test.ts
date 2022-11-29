@@ -1,23 +1,25 @@
-import { test } from 'uvu';
-import assert from 'uvu/assert';
+import { test } from "uvu";
+import assert from "uvu/assert";
 
-import TokenIDs from './token_ids';
+import TokenIDs from "./token_ids";
 
-test('Generates merkle roots and proofs', _ => {
+test("Generates merkle roots and proofs", (_) => {
   const ids: Set<bigint> = new Set([1n, 100n, 10000n]);
   const tokens = new TokenIDs(ids);
 
-  assert.throws(_ => tokens.proof([1n, 2n, 3n]));
+  // @ts-ignore
+  assert.throws((_) => tokens.proof([1n, 2n, 3n]));
 
   const proof = tokens.proof([1n, 100n]);
 
   assert.ok(tokens.verify(proof.proof, proof.proofFlags, proof.leaves));
 });
 
-test('Encodes and decodes tokens', _ => {
+test("Encodes and decodes tokens", (_) => {
   const ids = [];
 
   for (let i = 1; i < 1000000; i *= 2) {
+    // @ts-ignore
     ids.push(BigInt(i));
   }
 
@@ -30,4 +32,3 @@ test('Encodes and decodes tokens', _ => {
 });
 
 test.run();
-
