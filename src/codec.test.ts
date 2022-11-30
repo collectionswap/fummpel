@@ -1,10 +1,10 @@
-import { test } from 'uvu';
-import assert from 'uvu/assert';
+import { test } from "uvu";
+import * as assert from "uvu/assert";
 
-import { Codec } from './codec';
-import { randomUintN } from './codec/bitstream';
+const { Codec } = require("./codec");
+const { randomUintN } = require("./codec/bitstream");
 
-test('Codec estimates compressed size', _ => {
+test("Codec estimates compressed size", (_) => {
   const numbers = [1n, 2n, 4n, 5n, 7n];
 
   const codec = new Codec();
@@ -16,7 +16,7 @@ test('Codec estimates compressed size', _ => {
   assert.equal(codec.estimateSize([1n, 255n]), 4);
 });
 
-test('Packs and unpacks 1 to 256-bit numbers', _ => {
+test("Packs and unpacks 1 to 256-bit numbers", (_) => {
   // test these widths: 1, 2, 3, ..36, 46, 56, .. 246, 256
   for (let n = 1; n <= 256; n += n < 36 ? 1 : 10) {
     const set: Set<bigint> = new Set();
@@ -32,7 +32,7 @@ test('Packs and unpacks 1 to 256-bit numbers', _ => {
 
       const numbers = Array.from(set);
 
-      numbers.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+      numbers.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
       const codec = new Codec();
       const bytes = codec.encode(numbers);
