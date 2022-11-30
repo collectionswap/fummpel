@@ -1,10 +1,7 @@
-import { ICodec } from '../codec';
-import { BitStreamReader, BitStreamWriter, bitWidth } from './bitstream';
-
 // Bitmap stores numbers with the 0th item starting in the most-significant bit of byte 0
-export default class Bitmap implements ICodec {
+class Bitmap {
   decode(bytes: Uint8Array): Array<bigint> {
-    const numbers = [];
+    const numbers = [] as bigint[];
 
     for (let i = 0; i < bytes.length; i++) {
       let n = bytes[i] << 24; // align left to 32-bits
@@ -43,7 +40,7 @@ export default class Bitmap implements ICodec {
 
     // limit max to 2^32 / 4GB(!) bitmap so we can use bitwise ops
     if (size >= Math.pow(2, 32)) {
-      throw 'Bitmap too large';
+      throw "Bitmap too large";
     }
 
     const bytes = new Uint8Array(size);
@@ -56,3 +53,5 @@ export default class Bitmap implements ICodec {
     return bytes;
   }
 }
+
+module.exports = { Bitmap };

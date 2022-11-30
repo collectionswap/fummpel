@@ -2,9 +2,10 @@
   "name": "filter_code",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "./build/index.js",
   "scripts": {
     "test": "npx uvu -r ts-node/register src test.ts\\$",
+    "build": "yarn tsc --build",
     "api": "grep -e '^   *\\/\\?\\*' -A 1 src/token_ids.ts | sed -e '/^[^-]/{H;$!d} ; x ; s/^[-\\n /*]*\\(.*\\)\\*\\/\\n  \\(.*\\) {.*$/#### `\\2`\\n\\1/'"
   },
   "author": "",
@@ -16,6 +17,8 @@
   },
   "dependencies": {
     "@openzeppelin/merkle-tree": "^1.0.1",
-    "ethereum-cryptography": "^1.1.2"
+    "@types/node": "^18.11.9",
+    "ethereum-cryptography": "^1.1.2",
+    "tsc": "^2.0.4"
   }
 }

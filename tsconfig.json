@@ -1,0 +1,14 @@
+{
+  "target": "es2021",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+  "lib": ["es2021"],                                   /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+  "compilerOptions": {
+    "lib": [
+      "es2020"
+    ],
+    "module": "commonjs",
+    "target": "es2020",
+    "outDir": "build"
+  },
+  "include": ["src/**/*", "index.ts"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}
