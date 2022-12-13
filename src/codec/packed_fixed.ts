@@ -1,8 +1,8 @@
-const bs = require("./bitstream");
+import { BitStreamReader, bitWidth, BitStreamWriter } from "./bitstream";
 
-class PackedFixed {
+export class PackedFixed {
   decode(bytes: Uint8Array): Array<bigint> {
-    const reader = new bs.BitStreamReader(bytes);
+    const reader = new BitStreamReader(bytes);
     const width = Number(reader.read(8)) + 1;
     const numbers: bigint[] = [];
     let last = -1n;
@@ -28,16 +28,16 @@ class PackedFixed {
   }
 
   estimateSize(numbers: Array<bigint>): number {
-    const width = Math.max(bs.bitWidth(numbers[numbers.length - 1]), 1);
+    const width = Math.max(bitWidth(numbers[numbers.length - 1]), 1);
 
     // 1 byte for bit width and count * width rounded up to next byte
     return 1 + Math.ceil((numbers.length * width) / 8);
   }
 
   encode(numbers: Array<bigint>): Uint8Array {
-    const writer = new bs.BitStreamWriter();
+    const writer = new BitStreamWriter();
 
-    const width = Math.max(bs.bitWidth(numbers[numbers.length - 1]), 1);
+    const width = Math.max(bitWidth(numbers[numbers.length - 1]), 1);
     writer.write(8, BigInt(width - 1));
 
     for (let i = 0; i < numbers.length; i++) {
@@ -47,7 +47,3 @@ class PackedFixed {
     return writer.bytes();
   }
 }
-
-module.exports = {
-  PackedFixed,
-};

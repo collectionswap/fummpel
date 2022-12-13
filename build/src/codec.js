@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const bm = require("./codec/bitmap");
-const pf = require("./codec/packed_fixed");
+exports.Codec = void 0;
+const bitmap_1 = require("./codec/bitmap");
+const packed_fixed_1 = require("./codec/packed_fixed");
 const CODECS = {
     // Simple bitmap where LSb..MSb of first byte stores the number 0..7 etc.
-    1: bm.Bitmap,
+    1: bitmap_1.Bitmap,
     // Packed as fixed-width IDs, starting from MSb
-    8: pf.PackedFixed,
+    8: packed_fixed_1.PackedFixed,
     // Each ID is prefixed with 1 byte indicating length (bits) of ID
     // 9: VarPacked,
     // Fixed-wdth deltas between IDs
@@ -72,6 +73,4 @@ class Codec {
         return output;
     }
 }
-module.exports = {
-    Codec,
-};
+exports.Codec = Codec;

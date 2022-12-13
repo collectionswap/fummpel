@@ -1,8 +1,8 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-const { Bitmap } = require("./bitmap");
-const { randomUintN } = require("./bitstream");
+import { Bitmap } from "./bitmap";
+import { randomUintN } from "./bitstream";
 
 test("Packs and unpacks numbers up to 22n into a 3 byte bitmap", (_) => {
   const numbers = [1n, 2n, 4n, 5n, 7n, 16n];

@@ -1,7 +1,10 @@
-const bs = require("./bitstream");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PackedFixed = void 0;
+const bitstream_1 = require("./bitstream");
 class PackedFixed {
     decode(bytes) {
-        const reader = new bs.BitStreamReader(bytes);
+        const reader = new bitstream_1.BitStreamReader(bytes);
         const width = Number(reader.read(8)) + 1;
         const numbers = [];
         let last = -1n;
@@ -22,13 +25,13 @@ class PackedFixed {
         return numbers;
     }
     estimateSize(numbers) {
-        const width = Math.max(bs.bitWidth(numbers[numbers.length - 1]), 1);
+        const width = Math.max((0, bitstream_1.bitWidth)(numbers[numbers.length - 1]), 1);
         // 1 byte for bit width and count * width rounded up to next byte
         return 1 + Math.ceil((numbers.length * width) / 8);
     }
     encode(numbers) {
-        const writer = new bs.BitStreamWriter();
-        const width = Math.max(bs.bitWidth(numbers[numbers.length - 1]), 1);
+        const writer = new bitstream_1.BitStreamWriter();
+        const width = Math.max((0, bitstream_1.bitWidth)(numbers[numbers.length - 1]), 1);
         writer.write(8, BigInt(width - 1));
         for (let i = 0; i < numbers.length; i++) {
             writer.write(width, numbers[i]);
@@ -36,6 +39,4 @@ class PackedFixed {
         return writer.bytes();
     }
 }
-module.exports = {
-    PackedFixed,
-};
+exports.PackedFixed = PackedFixed;

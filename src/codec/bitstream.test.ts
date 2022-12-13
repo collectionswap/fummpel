@@ -1,12 +1,12 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-const {
+import {
   BitStreamReader,
   BitStreamWriter,
   bitWidth,
   randomUintN,
-} = require("./bitstream");
+} from "./bitstream";
 
 test("BitStreamReader packs bits", (_) => {
   const bytes = "0b10111011 0b11001010 0b10101010 0b10111111"

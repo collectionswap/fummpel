@@ -1,8 +1,8 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-const { PackedFixed } = require("./packed_fixed");
-const { randomUintN } = require("./bitstream");
+import { PackedFixed } from "./packed_fixed";
+import { randomUintN } from "./bitstream";
 
 test("Packs and unpacks 5 3-bit numbers into 2 bytes", (_) => {
   const numbers = [1n, 2n, 4n, 5n, 7n];

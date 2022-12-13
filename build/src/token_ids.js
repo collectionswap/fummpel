@@ -1,6 +1,9 @@
-const { StandardMerkleTree } = require("@openzeppelin/merkle-tree");
-const { keccak256 } = require("ethereum-cryptography/keccak");
-const codec = require("./codec");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.bytes32 = exports.TokenIDs = void 0;
+const merkle_tree_1 = require("@openzeppelin/merkle-tree");
+const keccak_1 = require("ethereum-cryptography/keccak");
+const codec_1 = require("./codec");
 /**
  * TokenIDs
  */
@@ -12,7 +15,7 @@ class TokenIDs {
      * Decode tokens from a compressed byte stream.
      */
     static decode(bytes) {
-        const decoder = new codec.Codec();
+        const decoder = new codec_1.Codec();
         const tokens = decoder.decode(bytes.slice(2));
         const tokenIDs = new TokenIDs(tokens);
         return tokenIDs;
@@ -24,7 +27,7 @@ class TokenIDs {
         if (!this.encoded) {
             const sorted = Array.from(this.tokenIDs);
             sorted.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-            const bytes = new codec.Codec().encode(sorted);
+            const bytes = new codec_1.Codec().encode(sorted);
             // have to copy bytes to prepend 2 byte format header, sad
             const encoded = new Uint8Array(bytes.length + 2);
             // header is currently unused
@@ -63,7 +66,7 @@ class TokenIDs {
         const hashes = [];
         const p = proof.values();
         const l = leaves
-            .map((l) => hex256(keccak256(keccak256(bytes(l[0])))))
+            .map((l) => hex256((0, keccak_1.keccak256)((0, keccak_1.keccak256)(bytes(l[0])))))
             .values();
         // @ts-ignore
         const h = hashes.values();
@@ -80,11 +83,12 @@ class TokenIDs {
     tree() {
         if (!this._tree) {
             const tokensBytes32 = Array.from(this.tokenIDs).map((t) => [bytes32(t)]);
-            this._tree = StandardMerkleTree.of(tokensBytes32, ["bytes32"]);
+            this._tree = merkle_tree_1.StandardMerkleTree.of(tokensBytes32, ["bytes32"]);
         }
         return this._tree;
     }
 }
+exports.TokenIDs = TokenIDs;
 /**
  * returns a 256-bit number n as a full 32-byte hex string starting with 0x
  */
@@ -94,6 +98,7 @@ function bytes32(n) {
     }
     return "0x" + n.toString(16).padStart(64, "0");
 }
+exports.bytes32 = bytes32;
 /**
  * Combines 2 child nodes to a parent as in a Merkle tree
  */
@@ -105,7 +110,7 @@ function hashPair(a, b) {
     const concatenated = new Uint8Array(64);
     concatenated.set(bytes(a));
     concatenated.set(bytes(b), 32);
-    return hex256(keccak256(concatenated));
+    return hex256((0, keccak_1.keccak256)(concatenated));
 }
 /**
  * Parses a hex string as bytes
@@ -131,7 +136,3 @@ function hex256(bytes) {
     }
     return ("0x" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(""));
 }
-module.exports = {
-    TokenIDs,
-    bytes32,
-};

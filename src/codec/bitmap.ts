@@ -1,5 +1,5 @@
 // Bitmap stores numbers with the 0th item starting in the most-significant bit of byte 0
-class Bitmap {
+export class Bitmap {
   decode(bytes: Uint8Array): Array<bigint> {
     const numbers = [] as bigint[];
 
@@ -53,5 +53,3 @@ class Bitmap {
     return bytes;
   }
 }
-
-module.exports = { Bitmap };

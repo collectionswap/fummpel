@@ -1,12 +1,12 @@
-const { StandardMerkleTree } = require("@openzeppelin/merkle-tree");
-const { keccak256 } = require("ethereum-cryptography/keccak");
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
-const codec = require("./codec");
+import { Codec } from "./codec";
 
 /**
  * TokenIDs
  */
-class TokenIDs {
+export class TokenIDs {
   tokenIDs: Set<bigint>;
   // @ts-ignore
   encoded: Uint8Array;
@@ -21,7 +21,7 @@ class TokenIDs {
    * Decode tokens from a compressed byte stream.
    */
   static decode(bytes: Uint8Array) {
-    const decoder = new codec.Codec();
+    const decoder = new Codec();
     const tokens = decoder.decode(bytes.slice(2));
     const tokenIDs = new TokenIDs(tokens);
 
@@ -36,7 +36,7 @@ class TokenIDs {
       const sorted = Array.from(this.tokenIDs);
       sorted.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
-      const bytes = new codec.Codec().encode(sorted);
+      const bytes = new Codec().encode(sorted);
 
       // have to copy bytes to prepend 2 byte format header, sad
       const encoded = new Uint8Array(bytes.length + 2);
@@ -119,7 +119,7 @@ class TokenIDs {
 /**
  * returns a 256-bit number n as a full 32-byte hex string starting with 0x
  */
-function bytes32(n: bigint): string {
+export function bytes32(n: bigint): string {
   if (n >= 1n << 256n) {
     throw "larger than 256-bit";
   }
@@ -175,8 +175,3 @@ function hex256(bytes: Uint8Array): string {
     "0x" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
   );
 }
-
-module.exports = {
-  TokenIDs,
-  bytes32,
-};

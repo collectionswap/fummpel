@@ -1,5 +1,5 @@
-const bm = require("./codec/bitmap");
-const pf = require("./codec/packed_fixed");
+import { Bitmap } from "./codec/bitmap";
+import { PackedFixed } from "./codec/packed_fixed";
 
 export interface ICodec {
   /**
@@ -20,10 +20,10 @@ export interface ICodec {
 
 const CODECS: { [index: number]: new () => ICodec } = {
   // Simple bitmap where LSb..MSb of first byte stores the number 0..7 etc.
-  1: bm.Bitmap,
+  1: Bitmap,
 
   // Packed as fixed-width IDs, starting from MSb
-  8: pf.PackedFixed,
+  8: PackedFixed,
 
   // Each ID is prefixed with 1 byte indicating length (bits) of ID
   // 9: VarPacked,
@@ -38,7 +38,7 @@ const CODECS: { [index: number]: new () => ICodec } = {
 /**
  * Encodes / decodes 256-bit numbers as compactly as possible
  */
-class Codec implements ICodec {
+export class Codec implements ICodec {
   codecs: { [index: number]: ICodec };
 
   constructor() {
@@ -117,7 +117,3 @@ class Codec implements ICodec {
     return output;
   }
 }
-
-module.exports = {
-  Codec,
-};

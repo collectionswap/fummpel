@@ -1,7 +1,7 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-const { TokenIDs } = require("./token_ids");
+import { TokenIDs } from "./token_ids";
 
 test("Generates merkle roots and proofs", (_) => {
   const ids: Set<bigint> = new Set([1n, 100n, 10000n]);

@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.randomUintN = exports.bitWidth = exports.BitStreamWriter = exports.BitStreamReader = void 0;
 const TWO_POW = [];
 for (let b = 0, t = 1n; b <= 256; b++, t <<= 1n) {
     TWO_POW.push(t);
@@ -47,6 +50,7 @@ class BitStreamReader {
         return output;
     }
 }
+exports.BitStreamReader = BitStreamReader;
 class BitStreamWriter {
     constructor(bytes = new Uint8Array(8)) {
         this.bits = bytes;
@@ -90,6 +94,7 @@ class BitStreamWriter {
         return Array.from(this.bits, (x) => ("0000000" + x.toString(2)).substr(-8)).join(" ");
     }
 }
+exports.BitStreamWriter = BitStreamWriter;
 function assert(test, msg = "failed") {
     if (!test) {
         throw msg;
@@ -105,6 +110,7 @@ function bitWidth(n) {
         n = n32;
     }
 }
+exports.bitWidth = bitWidth;
 const TWO_POW_32 = Math.pow(2, 32);
 function randomUintN(n) {
     let x = 0n, nn = n;
@@ -119,10 +125,4 @@ function randomUintN(n) {
     }
     return x;
 }
-module.exports = {
-    BitStreamReader,
-    BitStreamWriter,
-    assert,
-    bitWidth,
-    randomUintN,
-};
+exports.randomUintN = randomUintN;

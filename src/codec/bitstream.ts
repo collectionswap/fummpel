@@ -8,7 +8,7 @@ for (let b = 0, t = 1n; b <= 256; b++, t <<= 1n) {
  * Reads arbitrary width bits by treating a Uint8Array as a byte stream starting from first byte
  * and reading from the most-significant bits (MSb) in the same bit order
  */
-class BitStreamReader {
+export class BitStreamReader {
   bits: Uint8Array;
   cursor: number;
 
@@ -63,7 +63,7 @@ class BitStreamReader {
   }
 }
 
-class BitStreamWriter {
+export class BitStreamWriter {
   bits: Uint8Array;
   lengthBits: number;
 
@@ -136,7 +136,7 @@ function assert(test: boolean, msg: string = "failed") {
 }
 
 // returns minimum number of bits needed to represent n
-function bitWidth(n: bigint) {
+export function bitWidth(n: bigint) {
   for (let log2 = 0; ; log2 += 32) {
     const n32 = n >> 32n;
 
@@ -150,7 +150,7 @@ function bitWidth(n: bigint) {
 
 const TWO_POW_32 = Math.pow(2, 32);
 
-function randomUintN(n: number) {
+export function randomUintN(n: number) {
   let x = 0n,
     nn = n;
 
@@ -167,11 +167,3 @@ function randomUintN(n: number) {
 
   return x;
 }
-
-module.exports = {
-  BitStreamReader,
-  BitStreamWriter,
-  assert,
-  bitWidth,
-  randomUintN,
-};

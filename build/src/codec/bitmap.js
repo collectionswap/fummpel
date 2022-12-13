@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Bitmap = void 0;
 // Bitmap stores numbers with the 0th item starting in the most-significant bit of byte 0
 class Bitmap {
     decode(bytes) {
@@ -41,4 +44,4 @@ class Bitmap {
         return bytes;
     }
 }
-module.exports = { Bitmap };
+exports.Bitmap = Bitmap;
