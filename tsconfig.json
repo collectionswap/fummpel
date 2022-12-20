@@ -1,0 +1,11 @@
+{
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "module": "commonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "target": "es2020"
+  }
+}

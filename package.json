@@ -1,10 +1,17 @@
 {
-  "name": "filter_code",
-  "version": "1.0.0",
+  "name": "fummpel",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+
+  "files": [
+    "/dist"
+  ],
+
   "scripts": {
     "test": "npx uvu -r ts-node/register src test.ts\\$",
+    "build": "rm -r dist; npx tsc",
     "api": "grep -e '^   *\\/\\?\\*' -A 1 src/token_ids.ts | sed -e '/^[^-]/{H;$!d} ; x ; s/^[-\\n /*]*\\(.*\\)\\*\\/\\n  \\(.*\\) {.*$/#### `\\2`\\n\\1/'"
   },
   "author": "",
