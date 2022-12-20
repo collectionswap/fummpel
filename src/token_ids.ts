@@ -60,6 +60,17 @@ export class TokenIDs {
   }
 
   /**
+   * Returns the sorted order for the set needed to match a Merkle proof
+   */
+  sort(set: Iterable<bigint>) {
+    const subsetBytes32 = Array.from(new Set(set), (s) => [bytes32(s)]);
+
+    const { leaves } = this.tree().getMultiProof(subsetBytes32);
+
+    return leaves.map((leaf) => leaf[0]);
+  }
+
+  /**
    * Gets Merkle tree root hash
    */
   root() {

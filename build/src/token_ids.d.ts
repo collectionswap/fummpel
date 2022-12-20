@@ -20,6 +20,10 @@ export declare class TokenIDs {
      */
     proof(subset: Iterable<bigint>): import("@openzeppelin/merkle-tree/dist/core").MultiProof<string, string[]>;
     /**
+     * Returns the sorted order for the set needed to match a Merkle proof
+     */
+    sort(set: Iterable<bigint>): string[];
+    /**
      * Gets Merkle tree root hash
      */
     root(): string;
