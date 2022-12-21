@@ -1,5 +1,5 @@
-import Bitmap from './codec/bitmap';
-import PackedFixed from './codec/packed_fixed';
+import { Bitmap } from "./codec/bitmap";
+import { PackedFixed } from "./codec/packed_fixed";
 
 export interface ICodec {
   /**
@@ -18,7 +18,7 @@ export interface ICodec {
   encode(numbers: Array<bigint>): Uint8Array;
 }
 
-const CODECS: { [index: number]: new() => ICodec } = {
+const CODECS: { [index: number]: new () => ICodec } = {
   // Simple bitmap where LSb..MSb of first byte stores the number 0..7 etc.
   1: Bitmap,
 
@@ -42,14 +42,16 @@ export class Codec implements ICodec {
   codecs: { [index: number]: ICodec };
 
   constructor() {
-    this.codecs = Object.fromEntries(Object.entries(CODECS).map(([id, codec]) => [id, new codec()]));
+    this.codecs = Object.fromEntries(
+      Object.entries(CODECS).map(([id, codec]) => [id, new codec()])
+    );
   }
 
   decode(bytes: Uint8Array): Array<bigint> {
     const codec = this.codecs[bytes[0]];
 
     if (!codec) {
-      throw 'Unknown codec: ' + bytes[0];
+      throw "Unknown codec: " + bytes[0];
     }
 
     const numbers = codec.decode(bytes.slice(1));
@@ -58,7 +60,9 @@ export class Codec implements ICodec {
   }
 
   estimateSize(numbers: Array<bigint>): number {
-    const estimates = Object.values(this.codecs).map(c => c.estimateSize(numbers));
+    const estimates = Object.values(this.codecs).map((c) =>
+      c.estimateSize(numbers)
+    );
 
     // 1 byte for codec ID
     return 1 + Math.min(...estimates);
@@ -66,14 +70,18 @@ export class Codec implements ICodec {
 
   encode(numbers: Array<bigint>): Uint8Array {
     let minSize = Infinity;
-    let best: { codec: ICodec, id: number, encoded: Uint8Array };;
+    let best: { codec: ICodec; id: number; encoded: Uint8Array };
 
     for (const _id in this.codecs) {
       const id = +_id;
       const codec = this.codecs[id];
       const estimatedSize = codec.estimateSize(numbers);
 
-      if (isNaN(estimatedSize) || estimatedSize <= 0 || estimatedSize == Infinity) {
+      if (
+        isNaN(estimatedSize) ||
+        estimatedSize <= 0 ||
+        estimatedSize == Infinity
+      ) {
         // could not estimate size, actually encode to get size
         const encoded = codec.encode(numbers);
 
@@ -87,12 +95,14 @@ export class Codec implements ICodec {
 
       if (estimatedSize < minSize) {
         minSize = estimatedSize;
+        // @ts-ignore
         best = { codec, id, encoded: null };
       }
     }
 
+    // @ts-ignore
     if (!best) {
-      throw 'no codec found';
+      throw "no codec found";
     }
 
     if (best.encoded == null) {

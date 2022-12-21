@@ -22,7 +22,7 @@ export class BitStreamReader {
    * @param {number} n - Number of bits to read
    * @returns {bigint} n-bit number read
    */
-  read(n: number) {
+  read(n: number): bigint {
     assert(Number.isInteger(n) && n > 0 && n <= 256);
     assert(Math.ceil((this.cursor + n) / 8) <= this.bits.length);
 
@@ -73,8 +73,11 @@ export class BitStreamWriter {
   }
 
   write(lengthBits: number, bits: bigint) {
-    assert(Number.isInteger(lengthBits) && lengthBits > 0 && lengthBits <= 256, 'bad width');
-    assert(bits >= 0n && bits < TWO_POW[lengthBits], 'bad data range');
+    assert(
+      Number.isInteger(lengthBits) && lengthBits > 0 && lengthBits <= 256,
+      "bad width"
+    );
+    assert(bits >= 0n && bits < TWO_POW[lengthBits], "bad data range");
 
     // byte index where we start writing the MSb
     const startByte = Math.floor(this.lengthBits / 8);
@@ -120,11 +123,13 @@ export class BitStreamWriter {
   }
 
   dump() {
-    return Array.from(this.bits, x => ('0000000' + x.toString(2)).substr(-8)).join(' ');
+    return Array.from(this.bits, (x) =>
+      ("0000000" + x.toString(2)).substr(-8)
+    ).join(" ");
   }
 }
 
-function assert(test: boolean, msg: string = 'failed') {
+function assert(test: boolean, msg: string = "failed") {
   if (!test) {
     throw msg;
   }
@@ -146,7 +151,8 @@ export function bitWidth(n: bigint) {
 const TWO_POW_32 = Math.pow(2, 32);
 
 export function randomUintN(n: number) {
-  let x = 0n, nn = n;
+  let x = 0n,
+    nn = n;
 
   while (nn >= 32) {
     x <<= 32n;
@@ -161,4 +167,3 @@ export function randomUintN(n: number) {
 
   return x;
 }
-

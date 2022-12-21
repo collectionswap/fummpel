@@ -1,14 +1,16 @@
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
-import { keccak256 } from 'ethereum-cryptography/keccak';
+import { keccak256 } from "ethereum-cryptography/keccak";
 
-import { Codec } from './codec';
+import { Codec } from "./codec";
 
 /**
  * TokenIDs
  */
-export default class TokenIDs {
+export class TokenIDs {
   tokenIDs: Set<bigint>;
+  // @ts-ignore
   encoded: Uint8Array;
+  // @ts-ignore
   _tree: StandardMerkleTree<Array<string>>;
 
   constructor(tokenIDs: Iterable<bigint>) {
@@ -32,7 +34,7 @@ export default class TokenIDs {
   encode() {
     if (!this.encoded) {
       const sorted = Array.from(this.tokenIDs);
-      sorted.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+      sorted.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
       const bytes = new Codec().encode(sorted);
 
@@ -52,9 +54,20 @@ export default class TokenIDs {
    * Generates Merkle multi-proof for subset of token IDs
    */
   proof(subset: Iterable<bigint>) {
-    const subsetBytes32 = Array.from(new Set(subset), s => [bytes32(s)]);
+    const subsetBytes32 = Array.from(new Set(subset), (s) => [bytes32(s)]);
 
     return this.tree().getMultiProof(subsetBytes32);
+  }
+
+  /**
+   * Returns the sorted order for the set needed to match a Merkle proof
+   */
+  sort(set: Iterable<bigint>) {
+    const subsetBytes32 = Array.from(new Set(set), (s) => [bytes32(s)]);
+
+    const { leaves } = this.tree().getMultiProof(subsetBytes32);
+
+    return leaves.map((leaf) => leaf[0]);
   }
 
   /**
@@ -68,7 +81,9 @@ export default class TokenIDs {
    * Gets list of token IDs represented by this TokenIDs instance as a sorted array
    */
   tokens() {
-    return Array.from(this.tokenIDs).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+    return Array.from(this.tokenIDs).sort((a, b) =>
+      a < b ? -1 : a > b ? 1 : 0
+    );
   }
 
   /**
@@ -76,12 +91,16 @@ export default class TokenIDs {
    */
   verify(proof: string[], flags: boolean[], leaves: string[][]): boolean {
     if (leaves.length + proof.length - 1 != flags.length) {
-      throw 'wrong number of proofs / flags';
+      throw "wrong number of proofs / flags";
     }
 
+    // @ts-ignore
     const hashes = [];
     const p = proof.values();
-    const l = leaves.map(l => hex256(keccak256(keccak256(bytes(l[0]))))).values();
+    const l = leaves
+      .map((l) => hex256(keccak256(keccak256(bytes(l[0])))))
+      .values();
+    // @ts-ignore
     const h = hashes.values();
 
     // reconstruct root using instructions from flags to consume from leaves or proof
@@ -89,6 +108,7 @@ export default class TokenIDs {
       const a = l.next().value ?? h.next().value;
       const b = f ? l.next().value ?? h.next().value : p.next().value;
 
+      // @ts-ignore
       hashes.push(hashPair(a, b));
     }
 
@@ -99,7 +119,7 @@ export default class TokenIDs {
 
   private tree() {
     if (!this._tree) {
-      const tokensBytes32 = Array.from(this.tokenIDs).map(t => [bytes32(t)]);
+      const tokensBytes32 = Array.from(this.tokenIDs).map((t) => [bytes32(t)]);
       this._tree = StandardMerkleTree.of(tokensBytes32, ["bytes32"]);
     }
 
@@ -112,17 +132,18 @@ export default class TokenIDs {
  */
 export function bytes32(n: bigint): string {
   if (n >= 1n << 256n) {
-    throw 'larger than 256-bit'
+    throw "larger than 256-bit";
   }
 
-  return '0x' + n.toString(16).padStart(64, '0');
+  return "0x" + n.toString(16).padStart(64, "0");
 }
 
 /**
  * Combines 2 child nodes to a parent as in a Merkle tree
  */
 function hashPair(a: string, b: string): string {
-  if (b < a) { // always encode smaller value first
+  if (b < a) {
+    // always encode smaller value first
     [a, b] = [b, a];
   }
 
@@ -138,17 +159,19 @@ function hashPair(a: string, b: string): string {
  * Parses a hex string as bytes
  */
 function bytes(hex: string): Uint8Array {
-  if (hex[0] != '0' && hex[1] != 'x') {
-    throw 'not hex';
+  if (hex[0] != "0" && hex[1] != "x") {
+    throw "not hex";
   }
 
   const digits = hex.substr(2).match(/[0-9a-fA-F]{2}/g);
 
+  // @ts-ignore
   if (digits.length * 2 + 2 != hex.length) {
-    throw 'not hex';
+    throw "not hex";
   }
 
-  return new Uint8Array(digits.map(h => parseInt(h, 16)));
+  // @ts-ignore
+  return new Uint8Array(digits.map((h) => parseInt(h, 16)));
 }
 
 /**
@@ -156,8 +179,10 @@ function bytes(hex: string): Uint8Array {
  */
 function hex256(bytes: Uint8Array): string {
   if (bytes.length != 32) {
-    throw 'only 32 bytes accepted'
+    throw "only 32 bytes accepted";
   }
 
-  return '0x' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return (
+    "0x" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
+  );
 }

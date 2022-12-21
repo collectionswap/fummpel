@@ -1,10 +1,10 @@
-import { test } from 'uvu';
-import assert from 'uvu/assert';
+import { test } from "uvu";
+import * as assert from "uvu/assert";
 
-import PackedFixed from './packed_fixed';
-import { randomUintN } from './bitstream';
+import { PackedFixed } from "./packed_fixed";
+import { randomUintN } from "./bitstream";
 
-test('Packs and unpacks 5 3-bit numbers into 2 bytes', _ => {
+test("Packs and unpacks 5 3-bit numbers into 2 bytes", (_) => {
   const numbers = [1n, 2n, 4n, 5n, 7n];
   const codec = new PackedFixed();
 
@@ -19,7 +19,7 @@ test('Packs and unpacks 5 3-bit numbers into 2 bytes', _ => {
   assert.equal(unpacked, numbers);
 });
 
-test('Packs and unpacks 1 to 256-bit numbers', _ => {
+test("Packs and unpacks 1 to 256-bit numbers", (_) => {
   // 1, 2, 3, ..36, 46, 56, .. 246, 256
   for (let n = 1; n <= 256; n += n < 36 ? 1 : 10) {
     const set: Set<bigint> = new Set();
@@ -34,7 +34,7 @@ test('Packs and unpacks 1 to 256-bit numbers', _ => {
 
     const numbers = Array.from(set);
 
-    numbers.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+    numbers.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
     const codec = new PackedFixed();
     const bytes = codec.encode(numbers);

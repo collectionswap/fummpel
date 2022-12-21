@@ -1,11 +1,10 @@
-import { ICodec } from '../codec';
-import { BitStreamReader, BitStreamWriter, bitWidth } from './bitstream';
+import { BitStreamReader, bitWidth, BitStreamWriter } from "./bitstream";
 
-export default class PackedFixed implements ICodec {
+export class PackedFixed {
   decode(bytes: Uint8Array): Array<bigint> {
     const reader = new BitStreamReader(bytes);
     const width = Number(reader.read(8)) + 1;
-    const numbers = [];
+    const numbers: bigint[] = [];
     let last = -1n;
 
     while (true) {
@@ -13,8 +12,7 @@ export default class PackedFixed implements ICodec {
 
       try {
         n = reader.read(width);
-      }
-      catch(_) {
+      } catch (_) {
         break; // end of stream
       }
 
@@ -33,7 +31,7 @@ export default class PackedFixed implements ICodec {
     const width = Math.max(bitWidth(numbers[numbers.length - 1]), 1);
 
     // 1 byte for bit width and count * width rounded up to next byte
-    return 1 + Math.ceil(numbers.length * width / 8);
+    return 1 + Math.ceil((numbers.length * width) / 8);
   }
 
   encode(numbers: Array<bigint>): Uint8Array {
