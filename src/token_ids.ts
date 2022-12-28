@@ -53,8 +53,11 @@ export default class TokenIDs {
    */
   proof(subset: Iterable<bigint>) {
     const subsetBytes32 = Array.from(new Set(subset), s => [bytes32(s)]);
+    const { proof, proofFlags, leaves } = this.tree().getMultiProof(subsetBytes32);
 
-    return this.tree().getMultiProof(subsetBytes32);
+    const ids = leaves.map(l => BigInt(l[0]));
+
+    return { leaves: ids, proof, proofFlags };
   }
 
   /**
@@ -74,14 +77,15 @@ export default class TokenIDs {
   /**
    * Verify multiproof using essentially the same algo in OpenZeppelin's smart contract
    */
-  verify(proof: string[], flags: boolean[], leaves: string[][]): boolean {
+  verify(proof: string[], flags: boolean[], leaves: bigint[]): boolean {
+
     if (leaves.length + proof.length - 1 != flags.length) {
       throw 'wrong number of proofs / flags';
     }
 
     const hashes = [];
     const p = proof.values();
-    const l = leaves.map(l => hex256(keccak256(keccak256(bytes(l[0]))))).values();
+    const l = leaves.map(l => bytes32(keccak256(keccak256(uint8array(l))))).values();
     const h = hashes.values();
 
     // reconstruct root using instructions from flags to consume from leaves or proof
@@ -108,17 +112,6 @@ export default class TokenIDs {
 }
 
 /**
- * returns a 256-bit number n as a full 32-byte hex string starting with 0x
- */
-export function bytes32(n: bigint): string {
-  if (n >= 1n << 256n) {
-    throw 'larger than 256-bit'
-  }
-
-  return '0x' + n.toString(16).padStart(64, '0');
-}
-
-/**
  * Combines 2 child nodes to a parent as in a Merkle tree
  */
 function hashPair(a: string, b: string): string {
@@ -128,23 +121,32 @@ function hashPair(a: string, b: string): string {
 
   const concatenated = new Uint8Array(64);
 
-  concatenated.set(bytes(a));
-  concatenated.set(bytes(b), 32);
+  concatenated.set(uint8array(a));
+  concatenated.set(uint8array(b), 32);
 
-  return hex256(keccak256(concatenated));
+  return bytes32(keccak256(concatenated));
 }
 
 /**
- * Parses a hex string as bytes
+ * Convert to 32 byte Uint8Array from hex string or 256-bit bigint
  */
-function bytes(hex: string): Uint8Array {
-  if (hex[0] != '0' && hex[1] != 'x') {
-    throw 'not hex';
+function uint8array(input: bigint|string): Uint8Array {
+  let hex;
+
+  if (typeof input == 'bigint') {
+    hex = input.toString(16).padStart(64, '0');
+  }
+  else {
+    if (input[0] != '0' && input[1] != 'x') {
+      throw 'not hex';
+    }
+
+    hex = input.substr(2);
   }
 
-  const digits = hex.substr(2).match(/[0-9a-fA-F]{2}/g);
+  const digits = hex.match(/[0-9a-fA-F]{2}/g);
 
-  if (digits.length * 2 + 2 != hex.length) {
+  if (digits.length * 2 != hex.length) {
     throw 'not hex';
   }
 
@@ -152,12 +154,20 @@ function bytes(hex: string): Uint8Array {
 }
 
 /**
- * Outputs 32 bytes as hex string
+ * Convert to 32 byte hex string from 256-bit bigint or Uint8Array
  */
-function hex256(bytes: Uint8Array): string {
-  if (bytes.length != 32) {
+export function bytes32(input: bigint|Uint8Array): string {
+  if (typeof input == 'bigint') {
+    if (input >= 1n << 256n) {
+      throw 'larger than 256-bit'
+    }
+
+    return '0x' + input.toString(16).padStart(64, '0');
+  }
+
+  if (input.length != 32) {
     throw 'only 32 bytes accepted'
   }
 
-  return '0x' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return '0x' + Array.from(input, b => b.toString(16).padStart(2, '0')).join('');
 }

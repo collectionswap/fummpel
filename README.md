@@ -43,14 +43,7 @@ const root = tokens.root();
 // Merkle multiproof for 2 of the tokens
 const proof = tokens.proof([2n, 5n]);
 // {
-//   leaves: [
-//     [
-//       '0x0000000000000000000000000000000000000000000000000000000000000005'
-//     ],
-//     [
-//       '0x0000000000000000000000000000000000000000000000000000000000000002'
-//     ]
-//   ],
+//   leaves: [ 5n, 2n ],
 //   proof: [
 //     '0xcff8e1781584200105067c0684580a1524c9539de52c1f9889e2cf73830cfccc'
 //   ],
@@ -84,3 +77,7 @@ const decoded_token_ids = decoded_tokens.tokens();
 
 ### Single test
 `npx ts-node src/token_ids.test.ts`
+
+## Build / Publish
+
+`npm run build` and then `npm publish --access public`
