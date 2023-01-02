@@ -50,6 +50,10 @@ const proof = tokens.proof([2n, 5n]);
 //   proofFlags: [ true, false ]
 // }
 
+// Leaf error if token is not in tree
+const bad = tokens.proof([1n]);
+// Error: Leaf is not in tree
+
 // Verify multiproof
 const verified = tokens.verify(proof.proof, proof.proofFlags, proof.leaves);
 // true
