@@ -1,7 +1,9 @@
-import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
-import { keccak256 } from 'ethereum-cryptography/keccak';
+//import { StandardMerkleTree } from "@openzeppelin/merkle-tree';
+//import { keccak256 } from 'ethereum-cryptography/keccak';
 
 import { Codec } from './codec';
+import { keccak256 } from './keccak';
+import { MerkleTree } from './merkle';
 
 /**
  * TokenIDs
@@ -9,7 +11,12 @@ import { Codec } from './codec';
 export default class TokenIDs {
   tokenIDs: Set<bigint>;
   encoded: Uint8Array;
-  _tree: StandardMerkleTree<Array<string>>;
+  //_tree: StandardMerkleTree<Array<string>>;
+  _tree: MerkleTree;
+
+  static async init() {
+    await MerkleTree.init();
+  }
 
   constructor(tokenIDs: Iterable<bigint>) {
     this.tokenIDs = new Set(tokenIDs);
@@ -52,12 +59,16 @@ export default class TokenIDs {
    * Generates Merkle multi-proof for subset of token IDs
    */
   proof(subset: Iterable<bigint>) {
-    const subsetBytes32 = Array.from(new Set(subset), s => [bytes32(s)]);
-    const { proof, proofFlags, leaves } = this.tree().getMultiProof(subsetBytes32);
+    //const subsetBytes32 = Array.from(new Set(subset), s => [bytes32(s)]);
+    const uint8s = Array.from(new Set(subset), uint8array);
+    const { proof, proofFlags, leaves } = this.tree().getMultiProof(uint8s);
 
-    const ids = leaves.map(l => BigInt(l[0]));
+    console.log('llllllllllllllllllllll', leaves);
 
-    return { leaves: ids, proof, proofFlags };
+    const ids = leaves.map(bytes32).map(BigInt);//l => BigInt(l[0]));
+    //const ids = leaves.map(bigint);
+
+    return { leaves: ids, proof: proof.map(bytes32), proofFlags };
   }
 
   /**
@@ -103,8 +114,12 @@ export default class TokenIDs {
 
   private tree() {
     if (!this._tree) {
-      const tokensBytes32 = Array.from(this.tokenIDs).map(t => [bytes32(t)]);
-      this._tree = StandardMerkleTree.of(tokensBytes32, ["bytes32"]);
+      //const tokensBytes32 = Array.from(this.tokenIDs).map(t => [bytes32(t)]);
+      //this._tree = StandardMerkleTree.of(tokensBytes32, ["bytes32']);
+      const tokensUint8array = Array.from(this.tokenIDs, bigint2uint8array);
+let start = +new Date;
+      this._tree = new MerkleTree(tokensUint8array);
+console.log('FFFFFF',  +new Date - start);
     }
 
     return this._tree;
@@ -170,4 +185,29 @@ export function bytes32(input: bigint|Uint8Array): string {
   }
 
   return '0x' + Array.from(input, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Convert bigint to 32 byte Uint8Array
+ */
+function bigint2uint8array(input: bigint): Uint8Array {
+  const bytes = new Uint8Array(32);
+
+  /*
+  for (let i = 31; i >= 0; i--) {
+    bytes[i] = Number(BigInt.asUintN(8, input));
+    input >>= 8n;
+  }
+ */
+
+  for (let i = 31; i >= 0; i -= 4) {
+    let n32 = Number(BigInt.asUintN(32, input));
+    bytes[i    ] = (n32      ) & 255;
+    bytes[i - 1] = (n32 >>  8) & 255;
+    bytes[i - 2] = (n32 >> 16) & 255;
+    bytes[i - 3] = (n32 >> 24) & 255;
+    input >>= 32n;
+  }
+
+  return bytes;
 }

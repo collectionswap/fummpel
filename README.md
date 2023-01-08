@@ -34,6 +34,9 @@ Verify multiproof using essentially the same algo in OpenZeppelin's smart contra
 ```ts
 import { TokenIDs } from 'fummpel';
 
+// keccak256 needs to be initialized
+await TokenIDs.init();
+
 const tokens = new TokenIDs([2n,3n,5n,7n])
 
 // Merkle root for these 4 tokens
