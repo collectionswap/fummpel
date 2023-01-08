@@ -4,11 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-
   "files": [
     "/dist"
   ],
-
   "scripts": {
     "test": "npx uvu -r ts-node/register src test.ts\\$",
     "build": "rm -r dist; npx tsc",
@@ -22,7 +20,6 @@
     "uvu": "^0.5.6"
   },
   "dependencies": {
-    "@openzeppelin/merkle-tree": "^1.0.1",
-    "ethereum-cryptography": "^1.1.2"
+    "hash-wasm": "^4.9.0"
   }
 }

@@ -34,6 +34,9 @@ Verify multiproof using essentially the same algo in OpenZeppelin's smart contra
 ```ts
 import { TokenIDs } from 'fummpel';
 
+// keccak256 needs to be initialized
+await TokenIDs.init();
+
 const tokens = new TokenIDs([2n,3n,5n,7n])
 
 // Merkle root for these 4 tokens
@@ -71,7 +74,7 @@ const decoded_token_ids = decoded_tokens.tokens();
 ```
 
 # Development
-`yarn install`
+`npm install`
 
 ## Test
 `uvu` is used for testing.
@@ -81,6 +84,9 @@ const decoded_token_ids = decoded_tokens.tokens();
 
 ### Single test
 `npx ts-node src/token_ids.test.ts`
+
+### Browser Benchmark
+Install parcel then `parcel public/bench.html` or `npx parcel public/bench.html`.
 
 ## Build / Publish
 
