@@ -1,5 +1,4 @@
 import { ICodec } from '../codec';
-import { BitStreamReader, BitStreamWriter, bitWidth } from './bitstream';
 
 // Bitmap stores numbers with the 0th item starting in the most-significant bit of byte 0
 export default class Bitmap implements ICodec {

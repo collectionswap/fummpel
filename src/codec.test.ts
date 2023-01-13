@@ -5,8 +5,6 @@ import { Codec } from './codec';
 import { randomUintN } from './codec/bitstream';
 
 test('Codec estimates compressed size', _ => {
-  const numbers = [1n, 2n, 4n, 5n, 7n];
-
   const codec = new Codec();
 
   // all numbers fit in a 1-byte bitmap + codec ID

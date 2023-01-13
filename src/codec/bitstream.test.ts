@@ -71,7 +71,7 @@ test('Round-trip random fuzzing', _ => {
 
   const verify = new BitStreamReader(bits.bytes());
 
-  const output = numbers.map(({ n, x }) => ({ n, x: verify.read(n) }));
+  const output = numbers.map(({ n }) => ({ n, x: verify.read(n) }));
   assert.equal(output, numbers);
 });
 

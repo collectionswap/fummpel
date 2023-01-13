@@ -6,6 +6,8 @@
     "module": "commonJS",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "target": "es2020"
+    "target": "es2020",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }
