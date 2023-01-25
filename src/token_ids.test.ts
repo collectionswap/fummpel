@@ -14,6 +14,7 @@ test('Generates merkle roots and proofs', async _ => {
   const proof = tokens.proof([1n, 100n]);
 
   assert.ok(tokens.verify(proof.proof, proof.proofFlags, proof.leaves));
+  assert.ok(TokenIDs.verify(tokens.root(), proof.proof, proof.proofFlags, proof.leaves));
 });
 
 test('Encodes and decodes tokens', async _ => {

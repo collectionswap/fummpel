@@ -1,7 +1,8 @@
+import { compareBytes32, gt32, bigint256 } from './bytes';
 import { keccak256 } from './keccak';
 
-function hashPair(a: Uint8Array, b: Uint8Array): Uint8Array {
-  if (gt(a, b)) {
+export function hashPair(a: Uint8Array, b: Uint8Array): Uint8Array {
+  if (gt32(a, b)) {
     [a, b] = [b, a];
   }
 
@@ -11,6 +12,10 @@ function hashPair(a: Uint8Array, b: Uint8Array): Uint8Array {
   concatenated.set(b, 32);
 
   return keccak256(concatenated);
+}
+
+export function standardLeafHash(value: Uint8Array): Uint8Array {
+  return keccak256(keccak256(value));
 }
 
 function left(i: number): number { return 2 * i + 1 }
@@ -108,18 +113,43 @@ export function getMultiProof(tree: Uint8Array[], indices: number[]): MultiProof
   };
 }
 
-function standardLeafHash(value: Uint8Array): Uint8Array {
-  return keccak256(keccak256(value));
+/**
+ * Verify multiproof using essentially the same algo in OpenZeppelin's smart contract
+ */
+export function verify(root: Uint8Array, multiproof: MultiProof) {
+  const { leaves, proof, proofFlags } = multiproof;
+
+  if (leaves.length + proof.length - 1 != proofFlags.length) {
+    throw 'wrong number of proofs / flags';
+  }
+
+  const hashes = [];
+  const p = proof.values();
+  const l = leaves.map(standardLeafHash).values();
+  const h = hashes.values();
+
+  // reconstruct root using instructions from flags to consume from leaves or proof
+  for (const f of proofFlags) {
+    const a = l.next().value ?? h.next().value;
+    const b = f ? l.next().value ?? h.next().value : p.next().value;
+
+    hashes.push(hashPair(a, b));
+  }
+
+  const rootToVerify = hashes[hashes.length - 1] ?? leaves[0] ?? proof[0];
+
+  return compareBytes32(rootToVerify, root) == 0;
 }
+
 
 export class MerkleTree {
   // Given a hash, find the index in `values`. Hash must be converted to bigint so we can use a Map
   private readonly hashLookup: Map<bigint, number>;
 
-  // Our merkle tree, root is at 0 and leaves are filled in reverse from the end
+  // Our merkle tree, root is at 0 and leaves are filled in reverse from the end, sorted by hash
   private readonly tree: Uint8Array[];
 
-  // Values that are encodeded into the tree
+  // Values that are encoded into the tree
   private readonly values: Uint8Array[];
 
   // For each value in `values`, corresponding index of node in `tree` (leaves are sorted by hash)
@@ -134,7 +164,7 @@ export class MerkleTree {
       const hash = standardLeafHash(value);
 
       hashedValues.push({ valueIndex: i, hash });
-      hashLookup.set(bigint(hash), i);
+      hashLookup.set(bigint256(hash), i);
     }
 
     hashedValues.sort((_a, _b) => {
@@ -180,21 +210,21 @@ export class MerkleTree {
     await keccak256.init();
   }
 
-  get root(): string {
-    return '0x' + hex(this.tree[0]!);
-  }
-
-  leafHash(leaf: Uint8Array): bigint {
-    return bigint(standardLeafHash(leaf));
+  get root(): Uint8Array {
+    return this.tree[0]!;
   }
 
   leafLookup(leaf: Uint8Array): number {
-    return this.hashLookup.get(this.leafHash(leaf)) ?? throwError('Leaf is not in tree');
+    const hash = standardLeafHash(leaf);
+
+    return this.hashLookup.get(bigint256(hash)) ?? throwError('Leaf is not in tree');
   }
 
-  getMultiProof(leaves: (number | Uint8Array)[]): MultiProof {
-    // input validity
-    const valueIndices = leaves.map(leaf => typeof(leaf) === 'number' ? leaf : this.leafLookup(leaf));
+  /**
+   * Generate a multi-proof of an array of leaf values
+   */
+  getMultiProof(leaves: (Uint8Array)[]): MultiProof {
+    const valueIndices = leaves.map(leaf => this.leafLookup(leaf));
 
     for (const valueIndex of valueIndices)
       this.validateValue(valueIndex);
@@ -203,14 +233,7 @@ export class MerkleTree {
     const indices = valueIndices.map(i => this.treeIndex[i]!);
     const proof = getMultiProof(this.tree, indices);
 
-    // check proof
-    //const impliedRoot = processMultiProof(proof);
-    //if (!equalsBytes(impliedRoot, this.tree[0]!)) {
-      //throw new Error('Unable to prove values');
-    //}
-
-    // return multiproof in ?hex? format
-    proof.leaves = proof.leaves.map(hash => this.values[this.hashLookup.get(bigint(hash))!]!);
+    proof.leaves = proof.leaves.map(hash => this.values[this.hashLookup.get(bigint256(hash))!]!);
 
     return proof;
   }
@@ -231,73 +254,15 @@ export class MerkleTree {
   }
 }
 
-const HEX = [];
-
-for (let i = 0; i < 256; i++) {
-  HEX[i] = i.toString(16).padStart(2, '0');
-}
-
-/**
- * Convert Uint8Array to 32 byte hex string without leading '0x'
- */
-export function hex(input: Uint8Array): string {
-  if (input.length != 32) {
-    throwError('only 32 bytes accepted');
-  }
-
-  let hex = '';
-
-  for (let byte of input) {
-    hex += HEX[byte];
-  }
-
-  return hex;
-}
-
-export function compareBytes32(a: Uint8Array, b: Uint8Array): number {
-  for (let i = 0; i < 32; i++) {
-    if (a[i] !== b[i]) {
-      return a[i]! - b[i]!;
-    }
-  }
-
-  return 0;
-}
-
-export function gt(a: Uint8Array, b: Uint8Array): boolean {
-  for (let i = 0; i < 32; i++) {
-    if (a[i] > b[i]) return true;
-    if (a[i] < b[i]) return false;
-  }
-
-  return false;
-}
-
-export function checkBounds(array: unknown[], index: number) {
+function checkBounds(array: unknown[], index: number) {
   if (index < 0 || index >= array.length) {
     throw new Error('Index out of bounds');
   }
 }
 
-export function throwError(message?: string): never {
-  throw new Error(message);
-}
-
 /*
- * Convert 32 bytes to a bigint representation to enable use as keys in maps
+ * Throwing in functions prevents some optimiztions, use this to avoid that
  */
-function bigint(bytes: Uint8Array): bigint {
-  let b = 0n;
-
-  for (let i = 0; i < 32; i += 4) {
-    const bits32 =
-      (bytes[i    ] << 24) +
-      (bytes[i + 1] << 16) +
-      (bytes[i + 2] <<  8) +
-      (bytes[i + 3]);
-
-    b = (b << 32n) + BigInt(bits32);
-  }
-
-  return b;
+function throwError(message?: string): never {
+  throw new Error(message);
 }

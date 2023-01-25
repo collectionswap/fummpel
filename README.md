@@ -6,14 +6,20 @@
 Main class representing a set of token IDs as `BigInts`. Construct either with a list / set of
 `BigInts` or decode from compressed bytes.
 
-Generate Merkle tree roots / multi-proofs with `root()` and `proof(...)` and retrieve a compact
-binary representation with 'encode()`
+Generate Merkle tree roots / multi-proofs with `root()` and `proof(...)`. Note that order of values
+as returned in `leaves` is significant and is considered part of the multi-proof.
+
+Serialize into a compact binary representation with 'encode()` which can be deserialized with
+`TokenIDs.decode`..
 
 #### `new TokenIDs(tokenIDs: Iterable<bigint>)`
 Create a new list of tokens from any Iterable, e.g. `Set` / `Array`. Token IDs must be 256-bit `BigInts`
 
 #### `TokenIDs.decode(bytes: Uint8Array): TokenIDs`
 Decode tokens from a compressed byte stream.
+
+#### `TokenIDs.verify(root: string, proof: string[], proofFlags: boolean[], leaves: bigint[]): boolean`
+Verify multiproof for given root. Note that leaves order is significant.
 
 #### `encode()`
 Gets compressed binary representation of all token IDs
@@ -27,8 +33,9 @@ Gets Merkle tree root hash
 #### `tokens()`
 Gets list of token IDs represented by this TokenIDs instance as a sorted array
 
-#### `verify(proof: string[], flags: boolean[], leaves: string[][]): boolean`
-Verify multiproof using essentially the same algo in OpenZeppelin's smart contract
+#### `verify(proof: string[], proofFlags: boolean[], leaves: bigint[]): boolean`
+Verify multiproof for this tree. Note that leaves order is significant.
+
 
 ## Example
 ```ts

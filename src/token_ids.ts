@@ -1,6 +1,6 @@
+import { bigint256, hex, uint8array32 } from './bytes';
 import { Codec } from './codec';
-import { keccak256 } from './keccak';
-import { MerkleTree } from './merkle';
+import { MerkleTree, verify } from './merkle';
 
 /**
  * TokenIDs
@@ -8,7 +8,6 @@ import { MerkleTree } from './merkle';
 export default class TokenIDs {
   tokenIDs: Set<bigint>;
   encoded: Uint8Array;
-  //_tree: StandardMerkleTree<Array<string>>;
   _tree: MerkleTree;
 
   static async init() {
@@ -22,12 +21,23 @@ export default class TokenIDs {
   /**
    * Decode tokens from a compressed byte stream.
    */
-  static decode(bytes: Uint8Array) {
+  static decode(bytes: Uint8Array): TokenIDs {
     const decoder = new Codec();
     const tokens = decoder.decode(bytes.slice(2));
     const tokenIDs = new TokenIDs(tokens);
 
     return tokenIDs;
+  }
+
+  /**
+   * Verify multiproof for given root. Note that leaves order is significant.
+   */
+  static verify(root: string, proof: string[], proofFlags: boolean[], leaves: bigint[]): boolean {
+    return verify(hexToBytes(root), {
+      proof: proof.map(hexToBytes),
+      proofFlags,
+      leaves: leaves.map(uint8array32),
+    });
   }
 
   /**
@@ -56,19 +66,19 @@ export default class TokenIDs {
    * Generates Merkle multi-proof for subset of token IDs
    */
   proof(subset: Iterable<bigint>) {
-    const uint8s = Array.from(new Set(subset), uint8array);
+    const uint8s = Array.from(new Set(subset), uint8array32);
     const { proof, proofFlags, leaves } = this.tree().getMultiProof(uint8s);
 
-    const ids = leaves.map(bytes32).map(BigInt);
+    const ids = leaves.map(bigint256);
 
-    return { leaves: ids, proof: proof.map(bytes32), proofFlags };
+    return { leaves: ids, proof: proof.map(b => '0x' + hex(b)), proofFlags };
   }
 
   /**
    * Gets Merkle tree root hash
    */
   root() {
-    return this.tree().root;
+    return '0x' + hex(this.tree().root);
   }
 
   /**
@@ -79,35 +89,19 @@ export default class TokenIDs {
   }
 
   /**
-   * Verify multiproof using essentially the same algo in OpenZeppelin's smart contract
+   * Verify multiproof for this tree. Note that leaves order is significant.
    */
-  verify(proof: string[], flags: boolean[], leaves: bigint[]): boolean {
-
-    if (leaves.length + proof.length - 1 != flags.length) {
-      throw 'wrong number of proofs / flags';
-    }
-
-    const hashes = [];
-    const p = proof.values();
-    const l = leaves.map(l => bytes32(keccak256(keccak256(uint8array(l))))).values();
-    const h = hashes.values();
-
-    // reconstruct root using instructions from flags to consume from leaves or proof
-    for (const f of flags) {
-      const a = l.next().value ?? h.next().value;
-      const b = f ? l.next().value ?? h.next().value : p.next().value;
-
-      hashes.push(hashPair(a, b));
-    }
-
-    const root = hashes[hashes.length - 1] ?? leaves[0] ?? proof[0];
-
-    return root == this._tree.root;
+  verify(proof: string[], proofFlags: boolean[], leaves: bigint[]): boolean {
+    return verify(hexToBytes(this.root()), {
+      proof: proof.map(hexToBytes),
+      proofFlags,
+      leaves: leaves.map(uint8array32),
+    });
   }
 
   private tree() {
     if (!this._tree) {
-      const tokensUint8array = Array.from(this.tokenIDs, bigint2uint8array);
+      const tokensUint8array = Array.from(this.tokenIDs, uint8array32);
       this._tree = new MerkleTree(tokensUint8array);
     }
 
@@ -116,38 +110,14 @@ export default class TokenIDs {
 }
 
 /**
- * Combines 2 child nodes to a parent as in a Merkle tree
+ * Convert 0x hex string to 32 byte Uint8Array
  */
-function hashPair(a: string, b: string): string {
-  if (b < a) { // always encode smaller value first
-    [a, b] = [b, a];
+export function hexToBytes(input: string): Uint8Array {
+  if (input[0] != '0' && input[1] != 'x') {
+    throw 'not hex';
   }
 
-  const concatenated = new Uint8Array(64);
-
-  concatenated.set(uint8array(a));
-  concatenated.set(uint8array(b), 32);
-
-  return bytes32(keccak256(concatenated));
-}
-
-/**
- * Convert to 32 byte Uint8Array from hex string or 256-bit bigint
- */
-function uint8array(input: bigint|string): Uint8Array {
-  let hex;
-
-  if (typeof input == 'bigint') {
-    hex = input.toString(16).padStart(64, '0');
-  }
-  else {
-    if (input[0] != '0' && input[1] != 'x') {
-      throw 'not hex';
-    }
-
-    hex = input.substr(2);
-  }
-
+  const hex = input.substr(2);
   const digits = hex.match(/[0-9a-fA-F]{2}/g);
 
   if (digits.length * 2 != hex.length) {
@@ -155,41 +125,4 @@ function uint8array(input: bigint|string): Uint8Array {
   }
 
   return new Uint8Array(digits.map(h => parseInt(h, 16)));
-}
-
-/**
- * Convert to 32 byte hex string from 256-bit bigint or Uint8Array
- */
-export function bytes32(input: bigint|Uint8Array): string {
-  if (typeof input == 'bigint') {
-    if (input >= 1n << 256n) {
-      throw 'larger than 256-bit'
-    }
-
-    return '0x' + input.toString(16).padStart(64, '0');
-  }
-
-  if (input.length != 32) {
-    throw 'only 32 bytes accepted'
-  }
-
-  return '0x' + Array.from(input, b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * Convert bigint to 32 byte Uint8Array
- */
-function bigint2uint8array(input: bigint): Uint8Array {
-  const bytes = new Uint8Array(32);
-
-  for (let i = 31; i >= 0; i -= 4) {
-    let n32 = Number(BigInt.asUintN(32, input));
-    bytes[i    ] = (n32      ) & 255;
-    bytes[i - 1] = (n32 >>  8) & 255;
-    bytes[i - 2] = (n32 >> 16) & 255;
-    bytes[i - 3] = (n32 >> 24) & 255;
-    input >>= 32n;
-  }
-
-  return bytes;
 }
